@@ -1,1 +1,1 @@
-print("work bitch")
+# does the card counting
