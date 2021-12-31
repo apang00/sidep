@@ -29,6 +29,7 @@ def split_cond(player_hand, dealer_hand):
                             (dealer_hand[0] in range(2, 7) and (player_hand[0] == 6)) or
                             (dealer_hand[0] in nine_split and (player_hand[0] == 9))):
         return True
+    return False
     # note: never split 5's or 10's for optimal play
 
 
@@ -54,6 +55,7 @@ class Game:
         self.amount = amount
 
         self.count_holder = []
+        self.split_hand = {}
 
         self.player = []
         self.dealer = []
@@ -77,20 +79,26 @@ class Game:
             self.split(self.player)
             split_made = True
         else:
-            h_range = [0, 1, 7, 8, 9]
             # keep hitting until player exceeds 16 when dealer shows 7 or higher for optimal play
+            h_range = [0, 1, 7, 8, 9]
             while total(self.player) <= 16 and (self.dealer[0] in h_range):
                 self.hit(self.player)
 
         if not split_made:
             if sum(self.player) <= 21:
-                if sum(self.player) > self.dealer:
+                if sum(self.player) > sum(self.dealer):
                     return sum(self.player), sum(self.dealer), self.amount, self.counter(self.count_holder)
-                elif sum(self.player) == self.dealer:
+                elif sum(self.player) == sum(self.dealer):
                     return sum(self.player), sum(self.dealer), 0, self.counter(self.count_holder)
-                return sum(self.player), sum(self.dealer), -self.amount, self.counter(self.count_holder)
+            return sum(self.player), sum(self.dealer), -self.amount, self.counter(self.count_holder)
         else:
-            pass
+            for i in self.split_hand:
+                if sum(i) <= 21:
+                    if sum(i) > sum(self.dealer):
+                        return sum(self.player), sum(self.dealer), self.split_hand[i], self.counter(self.count_holder)
+                    elif sum(self.player) == sum(self.dealer):
+                        return sum(self.player), sum(self.dealer), 0, self.counter(self.count_holder)
+                return sum(self.player), sum(self.dealer), -self.split_hand[i], self.counter(self.count_holder)
 
     # ##################################################################################################################
 
@@ -169,10 +177,22 @@ class Game:
 
     # note max split is 4 (4 hands)
     def split(self, hand):
-        new_hand = {}
-        while len(new_hand) <= 4:
-            for i in hand:  # hand = [1,1]
-                new_hand[self.hit([i])] = self.amount  # {[1, 1]: 10, [1, m]: 5}
+        if hand[0] == 1:  # aces can only take one hit after split and can only be split once
+            self.split_hand[self.hit([1])] = self.amount
+            self.split_hand[self.hit([1])] = self.amount
+        else:
+            while len(self.split_hand) <= 4:
+                for i in hand:
+                    self.split_hand[self.hit([i])] = self.amount
+                for j in self.split_hand:
+                    if self.doubles(j, self.dealer):
+                        self.split_hand[j] *= 2
+                    elif split_cond(j, self.dealer):
+                        self.split(j)
+                    else:
+                        h_range = [0, 1, 7, 8, 9]
+                        # keep hitting until player exceeds 16 when dealer shows 7 or higher for optimal play
+                        while total(j) <= 16 and (self.dealer[0] in h_range):
+                            self.hit(j)
 
-#######################################################################################################################
 #######################################################################################################################
