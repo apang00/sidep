@@ -1,6 +1,7 @@
 import csv
 from main import Play
 from chooser import Chooser
+
 with open('data', 'w', newline='') as f:
     forR = csv.writer(f)
 
