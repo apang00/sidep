@@ -60,13 +60,14 @@ class Game:
         self.style = style  # depending on if style is necessary
         self.amount = amount
 
-        self.split_hand = {}
+        self.split_hand = []
         self.count_holder = []
 
     def setup(self):
         # deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0] * 4 * self.decks  # normal deck
         # deck = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0] * 4 * self.decks  # blackjack tests passed
-        deck = [8, 3, 8, 8, 8, 3, 3, 8, 3, 8, 3, 8] * 4 * self.decks
+        # deck = [8, 3, 8, 8, 8, 3, 3, 8, 3, 8, 3, 8] * 4 * self.decks  # doubling tests passed
+        deck = [0, 8, 8, 8, 0, 0, 0, 0, 8, 8, 8, 8] * 4 * self.decks  # splits
         random.shuffle(deck)
         return deck[(52 * self.cut):]
 
@@ -86,7 +87,7 @@ class Game:
             self.amount *= 2
             return self.reg_play_dealer(player, dealer, p_deck)
         elif split_cond(player, dealer):
-            self.split(player, dealer, p_deck)
+            return self.split(player, dealer, p_deck)
         else:
             return self.reg_play(player, dealer, p_deck)
 
@@ -100,6 +101,44 @@ class Game:
         #     return sum(player), sum(dealer), -self.split_hand[i], self.counter(self.count_holder, p_deck)
 
     # ##################################################################################################################
+    # note max split is 4 (4 hands)
+    def more_split(self, hand):
+        for i in hand:
+            if len(i) == 2 and i[0] == i[1] and len(hand) < 4:
+                a = [i[0]]
+                b = [i[1]]
+                hand.remove(i)
+                hand.append(a)
+                hand.append(b)
+                self.more_split(hand)
+        return hand
+
+    def split_helper(self, hand, deck):
+        hand = [[hand[0]], [hand[1]]]
+        for i in hand:
+            self.hit(i, deck)
+        return self.more_split(hand)
+
+    def split(self, hand, d_hand, deck):
+        print("splits")
+        if hand[0] == 1:  # aces can only take one hit after split and can only be split once
+            hand = [[1], [1]]
+            for i in hand:
+                self.hit(i, deck)
+            for j in hand:
+                self.split_hand.append(self.reg_play_dealer(j, d_hand, deck))
+            return self.split_hand
+        else:
+            new_hand = self.split_helper(hand, deck)
+            for i in new_hand:
+                if len(i) == 1:
+                    self.hit(i, deck)
+            for i in new_hand:
+                if self.doubles(i, d_hand, deck):
+                    self.amount *= 2
+                    return self.split_hand.append(self.reg_play_dealer(i, d_hand, deck))
+                else:
+                    return self.split_hand.append(self.reg_play(i, d_hand, deck))
 
     def reg_play(self, player, dealer, deck):
         print("r")
@@ -219,27 +258,6 @@ class Game:
             return True
         print("undoubled")
         return False
-
-    # note max split is 4 (4 hands)
-    def split(self, hand, d_hand, deck):
-        print("splits")
-        if hand[0] == 1:  # aces can only take one hit after split and can only be split once
-            self.split_hand[self.hit([1], deck)] = self.amount
-            self.split_hand[self.hit([1], deck)] = self.amount
-        else:
-            while len(self.split_hand) <= 4:
-                for i in hand:
-                    self.split_hand[self.hit([i], deck)] = self.amount
-                for j in self.split_hand:
-                    if self.doubles(j, d_hand, deck):
-                        self.split_hand[j] *= 2
-                    elif split_cond(j, d_hand):
-                        self.split(j, d_hand, deck)
-                    else:
-                        h_range = [0, 1, 7, 8, 9]
-                        # keep hitting until player exceeds 16 when dealer shows 7 or higher for optimal play
-                        while total(j) <= 16 and (d_hand[0] in h_range):
-                            self.hit(j, deck)
 
 
 #######################################################################################################################
