@@ -10,4 +10,4 @@ def tester(hand):
     return hand
 
 
-print(tester([[10, 5], [5, 5], [10, 7]]))
+print(tester([[5, 5], [5, 5]]))

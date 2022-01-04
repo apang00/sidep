@@ -64,10 +64,10 @@ class Game:
         self.count_holder = []
 
     def setup(self):
-        # deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0] * 4 * self.decks  # normal deck
+        deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0] * 4 * self.decks  # normal deck
         # deck = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0] * 4 * self.decks  # blackjack tests passed
         # deck = [8, 3, 8, 8, 8, 3, 3, 8, 3, 8, 3, 8] * 4 * self.decks  # doubling tests passed
-        deck = [0, 8, 8, 8, 0, 0, 0, 0, 8, 8, 8, 8] * 4 * self.decks  # splits
+        # deck = [0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8] * 4 * self.decks  # splits
         random.shuffle(deck)
         return deck[(52 * self.cut):]
 
@@ -90,15 +90,6 @@ class Game:
             return self.split(player, dealer, p_deck)
         else:
             return self.reg_play(player, dealer, p_deck)
-
-        # for i in self.split_hand:
-        #     if sum(i) <= 21:
-        #         if sum(i) > sum(dealer):
-        #             return sum(player), sum(dealer), self.split_hand[i], \
-        #                    self.counter(self.count_holder, p_deck)
-        #         elif sum(player) == sum(dealer):
-        #             return sum(player), sum(dealer), 0, self.counter(self.count_holder, p_deck)
-        #     return sum(player), sum(dealer), -self.split_hand[i], self.counter(self.count_holder, p_deck)
 
     # ##################################################################################################################
     # note max split is 4 (4 hands)
@@ -136,9 +127,10 @@ class Game:
             for i in new_hand:
                 if self.doubles(i, d_hand, deck):
                     self.amount *= 2
-                    return self.split_hand.append(self.reg_play_dealer(i, d_hand, deck))
+                    self.split_hand.append(self.reg_play_dealer(i, d_hand, deck))
                 else:
-                    return self.split_hand.append(self.reg_play(i, d_hand, deck))
+                    self.split_hand.append(self.reg_play(i, d_hand, deck))
+        return self.split_hand
 
     def reg_play(self, player, dealer, deck):
         print("r")
@@ -220,6 +212,7 @@ class Game:
         return self.true_count
 
     def blackjacks(self, player_hand, dealer_hand, deck):
+        "blkjk"
         if (player_hand == [0, 1] or player_hand == [1, 0]) and (
                 dealer_hand == [0, 1] or dealer_hand == [1, 0]):
             return total(player_hand), total(dealer_hand), 0, round(self.counter(self.count_holder, deck), 5), len(deck)
@@ -262,6 +255,6 @@ class Game:
 
 #######################################################################################################################
 
-tes = Game(8, 2, "c", 5, True)
+tes = Game(8, 2, "c", 10, True)
 decks = tes.setup()
 print(tes.blackjack_game(decks))
