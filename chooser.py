@@ -11,10 +11,10 @@ class Chooser:
         cut = input("How many decks are cut (1.5, 2 or 2.5): ")
         style = input("(n): no pattern \n (m): martingale system \n (o): oscar's grind \n (c): card counting ")
         per_hand = input("Dollar amount per bet: ")
-        see_count = input("(y): yes \n (n): no ")
+        see_count = input("See count? (y): yes \n (n): no ")
         self.holder = [decks, cut, style, per_hand, see_count]
         return self.holder
 
 
-r = Chooser()
-print(title(r.gather()))
+# r = Chooser()
+# print(title(r.gather()))
