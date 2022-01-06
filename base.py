@@ -2,8 +2,6 @@
 import random
 
 
-# TEST SOFT DOUBLE... SOMETHING'S OFF, Player going over 21 on soft double
-
 #######################################################################################################################
 #######################################################################################################################
 def total(hand):
@@ -22,20 +20,23 @@ def total(hand):
 
 
 def split_cond(player_hand, dealer_hand):
-    if player_hand[0] == player_hand[1]:
-        split_potential = True
-    else:
-        split_potential = False
+    if len(player_hand) == 2:
+        if player_hand[0] == player_hand[1]:
+            split_potential = True
+        else:
+            split_potential = False
 
-    nine_split = [2, 3, 4, 5, 6, 8, 9]
-    if split_potential and (((dealer_hand[0] in range(2, 8)) and
-                             (player_hand[0] == 2 or player_hand[0] == 3 or player_hand[0] == 7)) or
-                            (player_hand[0] == 8 or player_hand[0] == 1) or
-                            (dealer_hand[0] in range(5, 7) and (player_hand[0] == 4)) or
-                            (dealer_hand[0] in range(2, 7) and (player_hand[0] == 6)) or
-                            (dealer_hand[0] in nine_split and (player_hand[0] == 9))):
-        return True
-    return False
+        nine_split = [2, 3, 4, 5, 6, 8, 9]
+        if split_potential and (((dealer_hand[0] in range(2, 8)) and
+                                 (player_hand[0] == 2 or player_hand[0] == 3 or player_hand[0] == 7)) or
+                                (player_hand[0] == 8 or player_hand[0] == 1) or
+                                (dealer_hand[0] in range(5, 7) and (player_hand[0] == 4)) or
+                                (dealer_hand[0] in range(2, 7) and (player_hand[0] == 6)) or
+                                (dealer_hand[0] in nine_split and (player_hand[0] == 9))):
+            return True
+        return False
+    else:
+        return None
     # note: never split 5's or 10's for optimal play
 
 
@@ -73,15 +74,13 @@ class Game:
 
         self.style = style  # depending on if style is necessary
         self.amount = amount
+        self.double = False
 
         self.split_hand = []
         self.count_holder = []
 
     def setup(self):
         deck = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0] * 4 * self.decks  # normal deck
-        # deck = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0] * 4 * self.decks  # blackjack tests passed
-        # deck = [8, 3, 8, 8, 8, 3, 3, 8, 3, 8, 3, 8] * 4 * self.decks  # doubling tests passed
-        # deck = [0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8] * 4 * self.decks  # splits
         random.shuffle(deck)
         return deck[int((52 * self.cut)):]
 
@@ -98,7 +97,7 @@ class Game:
             return self.blackjacks(player, dealer, p_deck)
 
         if self.doubles(player, dealer, p_deck):
-            self.amount *= 2
+            self.double = True
             return self.reg_play_dealer(player, dealer, p_deck)
         elif split_cond(player, dealer):
             return self.split(player, dealer, p_deck)
@@ -125,7 +124,7 @@ class Game:
         return self.more_split(hand)
 
     def split(self, hand, d_hand, deck):
-        print("splits", hand[0])
+        # print("splits", hand[0])
         if hand[0] == 1:  # aces can only take one hit after split and can only be split once
             hand = [[1], [1]]
             for i in hand:
@@ -140,84 +139,96 @@ class Game:
                     self.hit(i, deck)
             for i in new_hand:
                 if self.doubles(i, d_hand, deck):
-                    self.amount *= 2
+                    self.double = True
                     self.split_hand.append(self.reg_play_dealer(i, d_hand, deck))
                 else:
                     self.split_hand.append(self.reg_play(i, d_hand, deck))
         return self.split_hand
 
     def reg_play(self, player, dealer, deck):
-        print("r")
+        if len(deck) == 0:
+            return None
+        # print("r")
         h_range = [0, 1, 7, 8, 9]
         # hit until 11 or more regardless of dealer hand
         while total(player) <= 11:
+            # print("player hit", total(player))
             self.hit(player, deck)
         # hit until 17 or more if dealer shows strong up card
         while total(player) <= 16 and (dealer[0] in h_range):
             self.hit(player, deck)
         # player busts
         if total(player) > 21:
-            return total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)
+            return [total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)]
         # dealer hits until 17 or more
         while total(dealer) < 17:
-            print(total(dealer), "hit")
+            # print(total(dealer), "hit")
             self.hit(dealer, deck)
         # dealer busts
         if total(dealer) > 21:
-            return total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)
+            return [total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)]
         # dealer doesn't bust, push
         elif total(dealer) == total(player):
-            return total(player), total(dealer), 0, counter(self.count_holder), len(deck)
+            return [total(player), total(dealer), 0, counter(self.count_holder), len(deck)]
         # dealer doesn't bust, win
         elif total(dealer) > total(player):
-            return total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)
+            return [total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)]
         # dealer doesn't bust, lose
         elif total(player) > total(dealer):
-            return total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)
+            return [total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)]
 
     # for splits and doubles
     def reg_play_dealer(self, player, dealer, deck):
-        print("dealer only")
+        if len(deck) == 0:
+            return None
+        # print("dealer only")
         while total(dealer) < 17:
-            print(total(dealer), "dealer hit")
+            # print(total(dealer), "dealer hit")
             self.hit(dealer, deck)
         # dealer busts
-        if total(dealer) > 21:
-            return total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)
+        if total(dealer) > 21 and self.double:
+            return [total(player), total(dealer), self.amount * 2, counter(self.count_holder), len(deck)]
+        elif total(dealer) > 21 and not self.double:
+            return [total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)]
         # dealer doesn't bust, push
         elif total(dealer) == total(player):
-            return total(player), total(dealer), 0, counter(self.count_holder), len(deck)
+            return [total(player), total(dealer), 0, counter(self.count_holder), len(deck)]
         # dealer doesn't bust, win
-        elif total(dealer) > total(player):
-            return total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)
+        elif total(dealer) > total(player) and self.double:
+            return [total(player), total(dealer), -(self.amount * 2), counter(self.count_holder), len(deck)]
+        elif total(dealer) > total(player) and not self.double:
+            return [total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)]
         # dealer doesn't bust, lose
-        elif total(player) > total(dealer):
-            return total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)
+        elif total(player) > total(dealer) and self.double:
+            return [total(player), total(dealer), self.amount * 2, counter(self.count_holder), len(deck)]
+        elif total(player) > total(dealer) and not self.double:
+            return [total(player), total(dealer), self.amount, counter(self.count_holder), len(deck)]
 
     def hit(self, hand: list, deck: list):
         if deck:
             card = deck.pop()
             self.count_holder.append(card)
             hand.append(card)
+            hand.sort(reverse=True)
         else:
-            exit()
+            return None
 
     def blackjacks(self, player_hand, dealer_hand, deck):
         if (player_hand == [0, 1] or player_hand == [1, 0]) and (
                 dealer_hand == [0, 1] or dealer_hand == [1, 0]):
-            print("blkjk")
-            return total(player_hand), total(dealer_hand), 0, counter(self.count_holder), len(deck)
+            # print("blkjk")
+            return [total(player_hand), total(dealer_hand), 0, counter(self.count_holder), len(deck)]
 
         elif (player_hand == [0, 1] or player_hand == [1, 0]) and (
                 dealer_hand != [0, 1] or dealer_hand != [1, 0]):
-            print("blkjk")
-            return total(player_hand), total(
-                dealer_hand), self.amount * 1.5, counter(self.count_holder), len(deck)
+            # print("blkjk")
+            return [total(player_hand), total(
+                dealer_hand), self.amount * 1.5, counter(self.count_holder), len(deck)]
 
         elif (player_hand != [0, 1] or player_hand != [1, 0]) and (
                 dealer_hand == [0, 1] or dealer_hand == [1, 0]):
-            return total(player_hand), total(
-                dealer_hand), -self.amount, counter(self.count_holder), len(deck)
+            return [total(player_hand), total(
+                dealer_hand), -self.amount, counter(self.count_holder), len(deck)]
 
     def doubles(self, player_hand, dealer_hand, deck):
         # hard doubles
@@ -226,7 +237,7 @@ class Game:
                         total(dealer_hand) in range(2, 10))) or \
                 (total(player_hand) == 9 and (
                         total(dealer_hand) in range(3, 7))):
-            print("hard double", total(player_hand))
+            # print("hard double", total(player_hand))
             self.hit(player_hand, deck)
             return True
 
@@ -237,15 +248,15 @@ class Game:
                                      ((total(player_hand) == 16 or total(player_hand) == 15 or
                                        total(player_hand) == 14 or total(player_hand) == 13) and
                                       dealer_hand[0] in range(4, 7))):
-            print("soft double", total(player_hand))
+            # print("soft double", total(player_hand))
             self.hit(player_hand, deck)
+            # print(total(player_hand))
             return True
-        print("no double")
+        # print("no double")
         return False
 
-
 #######################################################################################################################
-#
+
 # tes = Game(8, 2, "c", 10, True)
 # decks = tes.setup()
 # print(tes.blackjack_game(decks))

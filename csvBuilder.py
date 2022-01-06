@@ -1,5 +1,4 @@
 import csv
-from main import Play
 from chooser import Chooser
 
 with open('data', 'w', newline='') as f:
@@ -10,7 +9,8 @@ with open('data', 'w', newline='') as f:
 
     c = Chooser()
     data = c.gather()
-    game = Play(data[0], data[1], data[2], data[3], data[4])
+    game = Play(data[0], data[1], data[2], data[3], data[4]) # play no longer a class... modify this
+
     game.run_game()
     forCsv = game.csv_extract()
     for i in forCsv:

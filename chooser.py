@@ -11,8 +11,9 @@ class Chooser:
         cut = input("How many decks are cut (1.5, 2 or 2.5): ")
         style = input("(n): no pattern \n (m): martingale system \n (o): oscar's grind \n (c): card counting ")
         per_hand = input("Dollar amount per bet: ")
+        hands = input("How many hands played? ")
         see_count = input("See count? (y): yes \n (n): no ")
-        self.holder = [decks, cut, style, per_hand, see_count]
+        self.holder = [decks, cut, style, per_hand, hands, see_count]
         return self.holder
 
 
