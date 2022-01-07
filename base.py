@@ -146,22 +146,22 @@ class Game:
         return self.split_hand
 
     def reg_play(self, player, dealer, deck):
-        if len(deck) == 0:
-            return None
         # print("r")
         h_range = [0, 1, 7, 8, 9]
         # hit until 11 or more regardless of dealer hand
         while total(player) <= 11:
-            # print("player hit", total(player))
             self.hit(player, deck)
+            # print(total(player))
         # hit until 17 or more if dealer shows strong up card
         while total(player) <= 16 and (dealer[0] in h_range):
+
             self.hit(player, deck)
         # player busts
         if total(player) > 21:
             return [total(player), total(dealer), -self.amount, counter(self.count_holder), len(deck)]
         # dealer hits until 17 or more
         while total(dealer) < 17:
+
             # print(total(dealer), "hit")
             self.hit(dealer, deck)
         # dealer busts
@@ -179,10 +179,9 @@ class Game:
 
     # for splits and doubles
     def reg_play_dealer(self, player, dealer, deck):
-        if len(deck) == 0:
-            return None
         # print("dealer only")
         while total(dealer) < 17:
+
             # print(total(dealer), "dealer hit")
             self.hit(dealer, deck)
         # dealer busts
@@ -211,7 +210,8 @@ class Game:
             hand.append(card)
             hand.sort(reverse=True)
         else:
-            return None
+            for i in range(3):
+                hand.append(0)
 
     def blackjacks(self, player_hand, dealer_hand, deck):
         if (player_hand == [0, 1] or player_hand == [1, 0]) and (
