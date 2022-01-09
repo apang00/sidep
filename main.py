@@ -30,8 +30,7 @@ class Play:
                         pass
                     else:
                         run_count += play[3]
-                        # print(run_count)
-                        # print(len(cut_deck) / 52 + cut)
+                        # print(run_count, (len(cut_deck) / 52 + cut))
                         play[3] = round(run_count / (len(cut_deck) / 52 + cut), 3)
                         self.results.append(play)
                         cut_deck = cut_deck[-play[4]:]
@@ -43,9 +42,8 @@ class Play:
                         if i[0] >= 30 or i[1] >= 30:
                             pass
                         else:
-                            # print(run_count)
-                            # print(len(cut_deck) / 52 + cut)
-                            i[3] = round(run_count / (len(cut_deck) / 52 + cut), 3)
+                            # print(run_count, (len(cut_deck) / 52 + cut))
+                            i[3] = round(run_count / ((len(cut_deck) / 52) + cut), 3)
                             self.results.append(i)
         return self.results[0:hands]
 

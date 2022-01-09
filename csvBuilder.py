@@ -12,7 +12,7 @@ def get_data():
 
 def build_csv(data):
     counter = 0
-    with open('data.csv', 'w', newline='') as f:
+    with open('data2.csv', 'w', newline='') as f:
         forR = csv.writer(f)
 
         forR.writerow(["Games Played", "Player Hand", "Dealer Hand", "Win/Loss ($)",
