@@ -1,5 +1,6 @@
 import csv
 from main import Play
+# instead return a csv so that R can handle it without using a new file
 
 holder = []
 
